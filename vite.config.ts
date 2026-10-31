@@ -10,5 +10,6 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: { alias: { "@": path.resolve(projectRoot, "client", "src") } },
   root: path.resolve(projectRoot, "client"),
+  publicDir: path.resolve(projectRoot, "public"),
   build: { outDir: path.resolve(projectRoot, "dist"), emptyOutDir: true },
 });
