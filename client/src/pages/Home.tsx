@@ -207,30 +207,27 @@ export default function Home() {
     privacyAccepted: false,
     website: "",
   });
-  const [emailDraftOpened, setEmailDraftOpened] = useState(false);
+  const [submission, setSubmission] = useState<{ reference: string; message: string } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const t = content[language];
 
   const update = (field: keyof typeof form, value: string | boolean) => setForm(current => ({ ...current, [field]: value }));
-  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const submitLabel = language === "pl" ? "Wyślij sprawdzenie zakresu" : language === "de" ? "Umfangsprüfung senden" : "Submit scope check";
+  const submittedLabel = language === "pl" ? "Zapytanie zostało zapisane" : language === "de" ? "Anfrage wurde erfasst" : "Scope check recorded";
+  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!form.serviceInterest || !form.privacyAccepted) return;
-    const route = t.routes[form.serviceInterest as Service];
-    const subject = `BatteryDocs scope check — ${route}`;
-    const body = [
-      "BatteryDocs scope-check enquiry",
-      "",
-      `Service route: ${route}`,
-      `Name: ${form.name}`,
-      `Work email: ${form.workEmail}`,
-      `Company: ${form.company}`,
-      `Battery model/configuration: ${form.batteryModel || "Not provided"}`,
-      `Evidence issue: ${form.evidenceIssue || "Not provided"}`,
-      `Context: ${form.context || "Not provided"}`,
-      "",
-      "I confirm that I have not included confidential files, passwords or sensitive information."
-    ].join("\n");
-    window.location.href = `mailto:office@yfgglobal.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    setEmailDraftOpened(true);
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("/api/leads", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...form, language }) });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.message || payload.error || "The scope check could not be submitted.");
+      setSubmission({ reference: payload.reference, message: payload.message });
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "The scope check could not be submitted.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const navLinks = [["#problem", t.nav[0]], ["#method", t.nav[1]], ["#deliverables", t.nav[2]], ["#scope", t.nav[3]], ["#faq", t.nav[4]], ["#contact", t.nav[5]]];
@@ -306,11 +303,11 @@ export default function Home() {
 
         <section id="contact" className="scroll-mt-24 bg-[#f5f4ee]"><div className="mx-auto grid max-w-[1440px] gap-10 px-5 py-20 sm:px-8 lg:grid-cols-[.8fr_1.2fr] lg:px-12 lg:py-32"><div><p className="bd-kicker text-[#1725d1]">{t.contactLabel}</p><h2 className="mt-6 font-display text-5xl font-extrabold leading-[.9] tracking-[-.075em] sm:text-6xl">{t.contactTitle}</h2><p className="mt-7 max-w-xl text-lg leading-7 text-[#122019]/65">{t.contactText}</p><div className="mt-10 space-y-4 rounded-2xl border border-[#122019]/10 bg-white p-5 text-sm leading-6 text-[#122019]/62"><p className="flex gap-3"><LockKeyhole className="mt-0.5 size-5 shrink-0 text-[#1725d1]" />The public form accepts text only. Do not send confidential documents, passwords, special-category personal data, classified information or known malware.</p><p className="flex gap-3"><FileCheck2 className="mt-0.5 size-5 shrink-0 text-[#1725d1]" />A project-specific private intake is issued only after a written proposal, mutual Order Form acceptance and cleared payment.</p><a className="inline-flex items-center gap-2 font-bold text-[#1725d1] hover:underline" href="mailto:office@yfgglobal.com"><Mail className="size-4" />office@yfgglobal.com</a></div></div>
           <form onSubmit={onSubmit} className="rounded-[2rem] border border-[#122019]/12 bg-white p-6 shadow-[10px_10px_0_rgba(23,37,209,.12)] sm:p-9">
-            {emailDraftOpened ? <div className="rounded-2xl bg-[#eaf7ed] p-7"><ShieldCheck className="size-8 text-emerald-700" /><p className="mt-5 font-display text-3xl font-extrabold tracking-[-.06em] text-emerald-950">{t.form.success}</p><p className="mt-3 text-sm leading-6 text-emerald-900/70">{t.form.successText}</p><button type="button" onClick={() => { setEmailDraftOpened(false); setForm(current => ({ ...current, name: "", workEmail: "", company: "", batteryModel: "", evidenceIssue: "", context: "", privacyAccepted: false })); }} className="bd-button mt-6 bg-emerald-800 text-white">New request<ArrowRight className="size-4" /></button></div> : <>
+            {submission ? <div className="rounded-2xl bg-[#eaf7ed] p-7"><ShieldCheck className="size-8 text-emerald-700" /><p className="mt-5 font-display text-3xl font-extrabold tracking-[-.06em] text-emerald-950">{submittedLabel}</p><p className="mt-3 text-sm leading-6 text-emerald-900/70">Reference: <strong>{submission.reference}</strong>. {submission.message}</p><button type="button" onClick={() => { setSubmission(null); setForm(current => ({ ...current, name: "", workEmail: "", company: "", batteryModel: "", evidenceIssue: "", context: "", privacyAccepted: false })); }} className="bd-button mt-6 bg-emerald-800 text-white">New request<ArrowRight className="size-4" /></button></div> : <>
               <div className="grid gap-5 sm:grid-cols-2"><label className="form-label sm:col-span-2">{t.form.route}<select value={form.serviceInterest} onChange={event => update("serviceInterest", event.target.value)} required className="form-control mt-2"><option value="">{t.form.selectRoute}</option>{(Object.keys(t.routes) as Service[]).map(key => <option value={key} key={key}>{t.routes[key]}</option>)}</select></label><label className="form-label">{t.form.name}<input required value={form.name} onChange={event => update("name", event.target.value)} className="form-control mt-2" /></label><label className="form-label">{t.form.email}<input required type="email" value={form.workEmail} onChange={event => update("workEmail", event.target.value)} className="form-control mt-2" /></label><label className="form-label sm:col-span-2">{t.form.company}<input required value={form.company} onChange={event => update("company", event.target.value)} className="form-control mt-2" /></label><label className="form-label sm:col-span-2">{t.form.model}<input value={form.batteryModel} onChange={event => update("batteryModel", event.target.value)} className="form-control mt-2" /></label><label className="form-label sm:col-span-2">{t.form.issue}<textarea value={form.evidenceIssue} onChange={event => update("evidenceIssue", event.target.value)} rows={3} className="form-control mt-2 resize-y" /></label><label className="form-label sm:col-span-2">{t.form.context}<textarea value={form.context} onChange={event => update("context", event.target.value)} rows={2} className="form-control mt-2 resize-y" /></label></div>
               <label className="mt-6 flex cursor-pointer items-start gap-3 rounded-xl bg-[#f5f4ee] p-4 text-xs leading-5 text-[#122019]/67"><input required type="checkbox" checked={form.privacyAccepted} onChange={event => update("privacyAccepted", event.target.checked)} className="mt-0.5 size-4 accent-[#1725d1]" /><span>{t.form.privacy} <a href="/privacy" className="font-bold text-[#1725d1] hover:underline">Privacy Notice</a>.</span></label>
               <input tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" value={form.website} onChange={event => update("website", event.target.value)} />
-              <button disabled={!form.privacyAccepted || !form.serviceInterest} className="bd-button mt-6 w-full justify-center bg-[#1725d1] text-white disabled:cursor-not-allowed disabled:opacity-50">{t.form.submit}<ArrowRight className="size-4" /></button>
+              <button disabled={isSubmitting || !form.privacyAccepted || !form.serviceInterest} className="bd-button mt-6 w-full justify-center bg-[#1725d1] text-white disabled:cursor-not-allowed disabled:opacity-50">{isSubmitting ? t.form.pending : submitLabel}{isSubmitting ? <span className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white" /> : <ArrowRight className="size-4" />}</button>
             </>}
           </form>
         </div></section>

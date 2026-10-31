@@ -12,4 +12,5 @@ export default defineConfig({
   root: path.resolve(projectRoot, "client"),
   publicDir: path.resolve(projectRoot, "public"),
   build: { outDir: path.resolve(projectRoot, "dist"), emptyOutDir: true },
+  server: { host: true, allowedHosts: [".manus.computer"] },
 });

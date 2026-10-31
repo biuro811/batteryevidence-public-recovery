@@ -12,5 +12,5 @@
     "types": ["node", "vite/client"],
     "paths": { "@/*": ["./client/src/*"] }
   },
-  "include": ["client/src/**/*", "vite.config.ts"]
+  "include": ["client/src/**/*", "netlify/functions/**/*", "vite.config.ts"]
 }
