@@ -56,4 +56,4 @@ export default async (req: Request) => {
   return json(201, { ok: true, document: { id: record.id, originalName: record.originalName, bytes: record.bytes, sha256: record.sha256, status: record.status } });
 };
 
-export const config: Config = { path: "/api/intake/*" };
+export const config: Config = { path: ["/api/intake", "/api/intake/*"] };
