@@ -130,4 +130,4 @@ export default async (req: Request) => {
   return json(404, { error: "ops_route_not_found" });
 };
 
-export const config: Config = { path: "/api/ops/*" };
+export const config: Config = { path: ["/api/ops", "/api/ops/*"] };

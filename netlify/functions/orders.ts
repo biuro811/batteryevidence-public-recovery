@@ -29,6 +29,23 @@ function publicOrder(order: Order) {
   };
 }
 
+function testPaymentLinkFallback(order: Order) {
+  const paymentLink = process.env.STRIPE_TEST_PAYMENT_LINK?.trim();
+  const expectedAmount = Number(process.env.STRIPE_TEST_PAYMENT_LINK_AMOUNT_CENTS || "0");
+  const expectedCurrency = (process.env.STRIPE_TEST_PAYMENT_LINK_CURRENCY || "eur").toLowerCase();
+  if (!paymentLink || !Number.isSafeInteger(expectedAmount) || expectedAmount < 1) return undefined;
+  if (order.amountCents !== expectedAmount || order.currency.toLowerCase() !== expectedCurrency) return undefined;
+  try {
+    const url = new URL(paymentLink);
+    if (url.protocol !== "https:" || url.hostname !== "buy.stripe.com") return undefined;
+    url.searchParams.set("client_reference_id", order.id);
+    url.searchParams.set("prefilled_email", order.customerEmail);
+    return url.toString();
+  } catch {
+    return undefined;
+  }
+}
+
 export default async (req: Request) => {
   const invalidMethod = method(req, ["GET", "POST"]);
   if (invalidMethod) return invalidMethod;
@@ -73,7 +90,14 @@ export default async (req: Request) => {
 
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key || !key.startsWith("sk_test_")) {
-    return json(503, { error: "test_checkout_not_configured", message: "Test-mode Stripe Checkout is not configured in this deployment. Live charges are disabled." });
+    const checkoutUrl = testPaymentLinkFallback(order);
+    if (!checkoutUrl) {
+      return json(503, { error: "test_checkout_not_configured", message: "Test-mode Stripe Checkout is not configured for this order. The only fallback is a fixed, server-approved test Payment Link; live charges are disabled." });
+    }
+    const updated: Order = { ...order, status: "checkout_open", updatedAt: nowIso(), stripeCheckoutUrl: checkoutUrl };
+    await putJson(keys.order(updated.id), updated);
+    await writeAudit({ kind: "order.test_payment_link_opened", entityType: "order", entityId: order.id, actor: "customer", detail: { amountCents: order.amountCents, currency: order.currency, testMode: true } });
+    return json(201, { ok: true, checkoutUrl, testMode: true, paymentLinkFallback: true });
   }
 
   const stripe = new Stripe(key);

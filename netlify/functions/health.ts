@@ -12,7 +12,10 @@ export default async (req: Request) => {
       consultations: true,
       privateOrders: true,
       operationsAuthConfigured: Boolean(process.env.OPS_USERNAME && process.env.OPS_PASSWORD),
-      testStripeCheckoutConfigured: Boolean(process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_") && process.env.STRIPE_WEBHOOK_SECRET),
+      testStripeCheckoutConfigured: Boolean(
+        process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_") || process.env.STRIPE_TEST_PAYMENT_LINK,
+      ),
+      signedStripeWebhookConfigured: Boolean(process.env.STRIPE_WEBHOOK_SECRET),
       livePaymentsEnabled: false,
       postPaymentIntake: true,
       automatedMalwareScanning: false,

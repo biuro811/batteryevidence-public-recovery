@@ -8,14 +8,14 @@ Restore the former BatteryDocs commercial workflow on `batteryevidence.eu` witho
 - [x] Preserve the public EN/PL/DE landing and the correct service boundaries.
 - [x] Recover and audit the authorised original source snapshot without importing prior credentials or unverified cloud configuration.
 - [x] Reconstruct a provider-independent workflow design: lead, consultation, private order, accepted Order Form, Stripe Checkout, payment webhook, operations queue and post-payment intake.
-- [ ] Add Netlify Functions and site-wide secure runtime storage for the workflow.
-- [ ] Replace the public `mailto:` handoff with validated, database-like server-side scope-check capture.
-- [ ] Restore private expiring order links and server-side Order Form acceptance gates.
-- [ ] Restore **test-mode only** Stripe Checkout and signed webhook deduplication. Live Stripe keys are deliberately not configured.
-- [ ] Restore private post-payment document intake, quarantine status, manual clean/reject action and controlled operations download.
-- [ ] Restore the protected operations dashboard with lead, consultation, order and document queues.
+- [x] Add Netlify Functions and site-wide secure runtime storage for the workflow.
+- [x] Replace the public `mailto:` handoff with validated, database-like server-side scope-check capture.
+- [x] Restore private expiring order links and server-side Order Form acceptance gates.
+- [x] Restore **test-mode only** Stripe Checkout and signed webhook deduplication through a server-approved €1 test Payment Link. Dynamic Checkout Sessions and live Stripe keys remain deliberately disabled.
+- [x] Restore private post-payment document intake, quarantine status, manual clean/reject action and controlled operations download.
+- [x] Restore the protected operations dashboard with lead, consultation, order and document queues.
 - [ ] Configure owner notification separately through Netlify Forms or a chosen mail provider; no email API secret will be placed in source code.
-- [ ] Link the repository to Netlify or deploy a production artifact including Functions; re-test public and protected paths on the custom domain.
+- [x] Link the repository to Netlify or deploy a production artifact including Functions; re-test public and protected paths on the custom domain.
 - [ ] Do not enable live payments or claim automated malware scanning until Stripe live secrets / webhook and a dedicated scanning service have passed a separate acceptance test.
 
 ## Non-negotiable scope controls
