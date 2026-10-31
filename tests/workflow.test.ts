@@ -22,11 +22,11 @@ vi.mock("@netlify/blobs", () => ({
   }),
 }));
 
-import leadHandler from "./leads";
-import opsHandler from "./ops";
-import orderHandler from "./orders";
-import intakeHandler from "./intake";
-import { createAccessToken, hashToken, verifyToken } from "./lib/model";
+import leadHandler from "../netlify/functions/leads";
+import opsHandler from "../netlify/functions/ops";
+import orderHandler from "../netlify/functions/orders";
+import intakeHandler from "../netlify/functions/intake";
+import { createAccessToken, hashToken, verifyToken } from "../netlify/functions/lib/model";
 
 describe("BatteryDocs workflow controls", () => {
   beforeEach(() => {
